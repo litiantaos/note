@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+@import 'remixicon/fonts/remixicon.css';
+
+@layer base {
+  body {
+    @apply font-mono text-sm text-gray-800 sm:bg-gray-50;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  [contenteditable] {
+    @apply outline-hidden;
+  }
+
+  mark {
+    @apply bg-amber-100;
+  }
+}
+
+@layer components {
+  .btn-icon {
+    @apply text-lg transition-transform active:scale-90 disabled:opacity-50;
+  }
+
+  /* 内容标记 */
+  content {
+    @apply mx-1 inline-flex h-6 max-w-30 cursor-pointer items-center gap-1 rounded-sm bg-gray-100 px-1 text-xs;
+
+    .content-marker-icon,
+    .content-marker-name {
+      @apply pointer-events-none select-none;
+    }
+
+    .content-marker-name {
+      @apply overflow-hidden text-ellipsis whitespace-nowrap;
+    }
+  }
+
+  /* 过渡动画 */
+  .move-up-enter-active,
+  .move-up-leave-active {
+    transition:
+      transform 0.3s,
+      opacity 0.3s;
+  }
+
+  .move-up-enter-from,
+  .move-up-leave-to {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  .zoom-out-enter-active,
+  .zoom-out-leave-active {
+    transition:
+      transform 0.3s,
+      opacity 0.3s;
+  }
+
+  .zoom-out-enter-from,
+  .zoom-out-leave-to {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.3s;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
+  .list-move,
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 0.3s;
+  }
+
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+
+  .list-leave-active {
+    position: absolute;
+  }
+}
