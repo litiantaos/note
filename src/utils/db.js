@@ -51,7 +51,7 @@ const handleUpgrade = (event) => {
   for (let version = oldVersion + 1; version <= DB_VERSION; version++) {
     const handler = upgradeHandlers.get(version)
     if (handler) {
-      console.log(`升级到版本 ${version}`)
+      // console.log(`升级到版本 ${version}`)
       handler(db, transaction)
     }
   }

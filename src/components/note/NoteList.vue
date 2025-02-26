@@ -24,10 +24,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="">
+  <div>
     <div v-for="note in notes" :key="note.id">
       <Note :note="note" @delete="handleNoteDelete" />
     </div>
-    <div v-if="!notes.length" class="text-center text-gray-400">暂无笔记</div>
+
+    <div
+      v-if="!notes.length"
+      class="ri-tree-line flex h-[50vh] items-center justify-center text-5xl text-gray-200"
+    ></div>
   </div>
 </template>
