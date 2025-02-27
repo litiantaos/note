@@ -2,7 +2,7 @@
 import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Contents from '../editor/Contents.vue'
-import { formatDate } from '../../utils'
+import { formatDate, throttle } from '../../utils'
 import { contentType, getContentType } from '../../utils/note'
 import { findContentIndex } from '../../utils/marker'
 import { deleteNote, getFile } from '../../utils/db'
@@ -42,19 +42,35 @@ const noteContents = ref(props.note.contents || [])
 
 // 删除笔记
 const deleting = ref(false)
+let deleteTimeoutId = null
 
-const handleDelete = async () => {
-  if (deleting.value) {
+const handleDelete = throttle(async () => {
+  if (deleteTimeoutId) {
+    clearTimeout(deleteTimeoutId)
+  }
+
+  if (!deleting.value) {
+    // 第一次触发：将 deleting 设置为 true
+    deleting.value = true
+
+    // 设置 3 秒后将 deleting 重置为 false 的计时器
+    deleteTimeoutId = setTimeout(() => {
+      deleting.value = false
+      deleteTimeoutId = null
+    }, 3000)
+  } else {
+    // 3 秒内的后续触发：执行删除操作
     await deleteNote(props.note.id)
     emit('delete')
 
-    deleting.value = false
+    // 因为操作已完成，清除计时器
+    clearTimeout(deleteTimeoutId)
+    deleteTimeoutId = null
 
+    deleting.value = false
     router.push('/')
-  } else {
-    deleting.value = true
   }
-}
+}, 1000)
 
 // 初始化文件内容
 const initFileContent = async (id) => {
@@ -136,6 +152,19 @@ const initContentMark = async () => {
         if (index > -1) {
           contentsRef.value.setCurrentIndex(index)
         }
+
+        // 设置选中
+        const mks = contentRef.value.querySelectorAll('content')
+
+        for (const mk of mks) {
+          const mkId = mk.getAttribute('data-id')
+
+          if (mkId === id) {
+            mk.classList.add('bg-blue-100')
+          } else {
+            mk.classList.remove('bg-blue-100')
+          }
+        }
       })
     }
   }
@@ -162,30 +191,39 @@ onUnmounted(() => {
 
 <template>
   <div :class="['border-gray-200', customStyle]">
-    <div class="mb-2 flex items-center justify-between text-gray-400">
+    <div class="mb-4 flex items-center justify-between text-gray-400">
       <div class="text-xs">
         {{ formatDate(note.createAt) }}
       </div>
-      <TransitionGroup
-        name="list"
-        tag="div"
-        :class="[
-          'flex items-center gap-2 rounded-sm transition-all',
-          { 'bg-gray-100 px-1': deleting },
-        ]"
+
+      <div
+        v-if="!hideContents && route.name === 'note'"
+        class="flex items-center gap-2"
       >
-        <button
-          v-if="!hideContents && route.name === 'note'"
-          class="ri-delete-bin-line btn-icon text-sm transition-all duration-300"
-          :class="{ 'text-red-400': deleting }"
-          @click="handleDelete"
-        ></button>
-        <button
-          v-if="deleting"
-          class="ri-close-line btn-icon text-sm"
-          @click="deleting = false"
-        ></button>
-      </TransitionGroup>
+        <button class="ri-edit-line btn-icon text-sm"></button>
+        <div
+          :class="[
+            'flex items-center rounded-sm transition-all duration-300',
+            deleting ? 'w-12 bg-gray-100' : 'w-4',
+          ]"
+        >
+          <button
+            :class="[
+              'ri-delete-bin-line btn-icon ml-1.5 text-sm transition-[color] duration-300',
+              { 'text-red-400': deleting },
+            ]"
+            @click="handleDelete"
+          ></button>
+          <Transition name="zoom-out">
+            <button
+              v-if="deleting"
+              class="ri-close-line btn-icon ml-2 text-sm"
+              @click="deleting = false"
+            ></button>
+          </Transition>
+        </div>
+      </div>
+
       <button
         v-if="route.name !== 'note'"
         class="ri-arrow-right-s-line btn-icon"

@@ -13,6 +13,7 @@ import {
 import { getContentType, cleanHTMLString } from '../../utils/note'
 import { saveFile, saveNote } from '../../utils/db'
 import { createMarker, findContentIndex } from '../../utils/marker'
+import { throttle } from '../../utils'
 
 const title = ref('')
 const content = ref('')
@@ -71,7 +72,7 @@ const updateContentMarker = (oldId, newId) => {
 }
 
 // 保存笔记
-const handleSaveNote = async () => {
+const handleSaveNote = throttle(async () => {
   if (!content.value) return
 
   try {
@@ -119,7 +120,7 @@ const handleSaveNote = async () => {
   } catch (error) {
     console.error('保存笔记失败:', error)
   }
-}
+}, 1000)
 
 // 保存光标位置
 let savedSelection = null
@@ -167,7 +168,20 @@ const insertMarker = ({ id, type, name }) => {
       onClick: () => {
         const index = findContentIndex(contents.value, id)
         if (index > -1) {
-          contentRef.value.setCurrentIndex(index)
+          contentsRef.value.setCurrentIndex(index)
+        }
+
+        // 设置选中
+        const mks = editorRef.value.querySelectorAll('content')
+
+        for (const mk of mks) {
+          const mkId = mk.getAttribute('data-id')
+
+          if (mkId === id) {
+            mk.classList.add('bg-blue-100')
+          } else {
+            mk.classList.remove('bg-blue-100')
+          }
         }
       },
       onRemove: () => {
@@ -177,6 +191,8 @@ const insertMarker = ({ id, type, name }) => {
 
     range.insertNode(marker)
     setCaretAfterNode(marker)
+
+    content.value = editorRef.value.innerHTML
   }
 
   saveCaretPosition()
@@ -194,9 +210,9 @@ const removeContent = (id) => {
 
   // 如果删除的是最后一个，将索引减一
   if (index === contents.value.length - 1) {
-    contentRef.value.setCurrentIndex(index - 1)
+    contentsRef.value.setCurrentIndex(index - 1)
   } else {
-    contentRef.value.setCurrentIndex(index)
+    contentsRef.value.setCurrentIndex(index)
   }
 
   // 如果是文件则释放 URL 对象
@@ -262,14 +278,14 @@ const handleContentsChange = (items) => {
       (content) => content.id === lastInsertedId,
     )
     if (newIndex !== -1) {
-      contentRef.value?.setCurrentIndex(newIndex)
+      contentsRef.value?.setCurrentIndex(newIndex)
     }
   }
 }
 
 // 编辑器相关
 const editorRef = ref(null)
-const contentRef = ref(null)
+const contentsRef = ref(null)
 
 // 监听编辑器输入
 const handleEditorInput = (e) => {
@@ -309,20 +325,25 @@ onMounted(() => {
 
 <template>
   <div>
-    <input
-      type="text"
-      v-model="title"
-      placeholder="添加标题"
+    <div
       :class="[
-        'h-6 font-semibold transition-all',
-        inputFocus
-          ? 'w-full rounded-none bg-transparent pl-0'
-          : 'w-16 rounded-sm bg-gray-100 pl-2 text-xs',
+        'h-6 overflow-hidden rounded-sm transition-all duration-300',
+        inputFocus ? 'w-full' : 'w-17 bg-gray-100',
       ]"
-      @focus="inputFocus = true"
-      @blur="handleInputBlur"
-      @keyup.enter="editorRef.focus()"
-    />
+    >
+      <input
+        type="text"
+        v-model="title"
+        placeholder="添加标题"
+        :class="[
+          'h-full w-full origin-left font-semibold transition-transform duration-300',
+          inputFocus ? '' : 'translate-x-2 scale-90',
+        ]"
+        @focus="inputFocus = true"
+        @blur="handleInputBlur"
+        @keyup.enter="editorRef.focus()"
+      />
+    </div>
 
     <div
       ref="editorRef"
@@ -346,7 +367,7 @@ onMounted(() => {
 
     <div v-if="contents.length" class="mt-4">
       <Contents
-        ref="contentRef"
+        ref="contentsRef"
         :contents="contents"
         @remove-content="removeContent"
         @name-change="onContentNameChange"

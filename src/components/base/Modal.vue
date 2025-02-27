@@ -23,10 +23,7 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <Transition name="move-up">
-      <div
-        v-if="state.visible"
-        class="fixed top-0 right-0 bottom-0 left-0 z-[100] bg-white/50 backdrop-blur-lg"
-      >
+      <div v-if="state.visible" class="fixed inset-0 z-[100] bg-white">
         <Layout :title="state.title">
           <div class="p-4">
             <button

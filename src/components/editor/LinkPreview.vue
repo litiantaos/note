@@ -20,14 +20,14 @@ const getWebMeta = async (url) => {
       const proxyUrl = `https://api.microlink.io/?url=${url}`
       const response = await fetch(proxyUrl)
       const { status, data } = await response.json()
-      // console.log(data)
+      console.log(data)
 
       if (status === 'success') {
         emit('title-loaded', data.title)
 
-        const imgUrl = data.image.url
+        const imgUrl = data.image?.url || data.logo?.url
 
-        imageIsCover.value = data.image.width > 540
+        imageIsCover.value = data.image?.width > 540 || false
 
         if (url.includes('bilibili.com/video/')) {
           imageUrl.value = imgUrl.replace(/\.jpg.*$/, '.jpg')
@@ -52,7 +52,7 @@ onMounted(() => {
 
 <template>
   <a :href="url" target="_blank" rel="noopener noreferrer">
-    <div class="relative min-h-20 w-full">
+    <div class="group relative min-h-20 w-full">
       <img
         v-if="imageUrl"
         :src="imageUrl"
@@ -61,13 +61,14 @@ onMounted(() => {
         :class="['w-full', { 'h-24 object-cover': !imageIsCover }]"
         @load="handleLoaded"
       />
+
       <div
-        class="absolute z-50 flex items-center justify-center gap-2 bg-white/60 px-4"
-        :class="
+        :class="[
+          'absolute top-0 right-0 bottom-0 left-0 z-50 flex items-center justify-center gap-2 bg-white/50 px-4 transition-opacity duration-300',
           imageIsCover
-            ? 'bottom-4 left-1/2 max-w-1/2 -translate-x-1/2 rounded-sm backdrop-blur-md'
-            : 'top-0 right-0 bottom-0 left-0 backdrop-blur-2xl'
-        "
+            ? 'opacity-0 backdrop-blur-xl sm:group-hover:opacity-100'
+            : 'backdrop-blur-3xl',
+        ]"
       >
         <div
           v-if="loading"

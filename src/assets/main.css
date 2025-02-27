@@ -29,7 +29,7 @@
 
   /* 内容标记 */
   content {
-    @apply mx-1 inline-flex h-6 max-w-30 cursor-pointer items-center gap-1 rounded-sm bg-gray-100 px-1 text-xs;
+    @apply mr-1 inline-flex h-6 max-w-30 cursor-pointer items-center gap-1 rounded-sm bg-gray-100 px-2 text-xs;
 
     .content-marker-icon,
     .content-marker-name {

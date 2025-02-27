@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import Note from '../note/Note.vue'
+import { throttle } from '../../utils'
 import { searchNotes } from '../../utils/db'
 
 const emit = defineEmits(['close', 'confirm'])
@@ -14,7 +15,7 @@ const handleNote = (data) => {
   emit('close')
 }
 
-const handleSearch = async () => {
+const handleSearch = throttle(async () => {
   try {
     results.value = await searchNotes(input.value)
     console.log(results.value)
@@ -22,7 +23,7 @@ const handleSearch = async () => {
     console.error('Search failed:', error)
     results.value = []
   }
-}
+}, 1000)
 
 onMounted(() => {
   if (inputRef.value) {

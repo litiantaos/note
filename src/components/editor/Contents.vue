@@ -117,7 +117,7 @@ const getHeight = async () => {
 
   const contentElement = currentElement.children[0]
   if (contentElement) {
-    height.value = contentElement.offsetHeight
+    height.value = contentElement.offsetHeight - 1
   }
 }
 
@@ -203,17 +203,13 @@ const downloadFile = (url) => {
   document.body.appendChild(link)
   link.click()
 
-  // 清理
   document.body.removeChild(link)
-  // URL.revokeObjectURL(url)
 }
 </script>
 
 <template>
   <div class="overflow-hidden rounded-sm border border-gray-200">
-    <div
-      class="flex items-center justify-between gap-4 border-b border-gray-200 p-2"
-    >
+    <div class="flex items-center justify-between border-b border-gray-200 p-2">
       <i
         :class="[
           contentType[getContentType(contents[currentIndex].type)].icon,
@@ -224,7 +220,7 @@ const downloadFile = (url) => {
         v-model="contents[currentIndex].name"
         placeholder="输入名称"
         :disabled="readonly"
-        class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+        class="ml-2 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
         @input="handleNameInput"
       />
 
@@ -233,7 +229,7 @@ const downloadFile = (url) => {
         @click="prev"
         :disabled="currentIndex === 0"
       ></button>
-      <span>{{ currentIndex + 1 }}/{{ contentCount }}</span>
+      <span class="mx-4">{{ currentIndex + 1 }}/{{ contentCount }}</span>
       <button
         class="ri-arrow-right-line btn-icon"
         @click="next"
@@ -301,13 +297,13 @@ const downloadFile = (url) => {
           <!-- 代码 -->
           <div
             v-else-if="getContentType(content.type) === 'code'"
-            class="w-full p-2"
+            class="w-full"
           >
             <textarea
               v-model="content.data"
               placeholder="Hello World!"
               :readonly="readonly"
-              class="min-h-60 w-full resize-none font-mono"
+              class="block min-h-60 w-full resize-none bg-gray-50 p-2 font-mono text-xs leading-5 whitespace-pre text-gray-600"
             ></textarea>
           </div>
 

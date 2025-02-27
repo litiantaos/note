@@ -26,3 +26,16 @@ export const isValidUrl = (string) => {
     return false
   }
 }
+
+export const throttle = (fn, delay = 300) => {
+  let lastTime = 0
+
+  return function (...args) {
+    const now = Date.now()
+
+    if (now - lastTime >= delay) {
+      fn.apply(this, args)
+      lastTime = now
+    }
+  }
+}
